@@ -38,5 +38,5 @@ def main(name):
 
 
 if __name__ == '__main__':
-    name = dataset_names()[0]
-    main(name)
+    for name in dataset_names():
+        main(name)
