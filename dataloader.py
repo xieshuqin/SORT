@@ -10,13 +10,15 @@ from torchvision.datasets.folder import default_loader
 
 
 def list_imgs(img_dir):
-    instances = []
+    instances = {}
     for root, _, fnames in sorted(os.walk(img_dir)):
         for fname in sorted(fnames):
             path = os.path.join(root, fname)
-            instances.append(path)
+            frame_id = int(fname.strip('.jpg'))
+            instances[frame_id] = path
 
     return instances
+
 
 class MOTDataset(Dataset):
     def __init__(self, root, transform=None):
@@ -41,10 +43,6 @@ class MOTDataset(Dataset):
         self.transform = transform
 
     def __getitem__(self, idx):
-        img = self.loader(self.img_paths[idx])
-        if self.transform:
-            img = self.transform(img)
-
         ann = torch.Tensor(self.anns[idx])
         frame_ids, obj_ids, bboxes = ann[:, [0]], ann[:, [1]], ann[:, 2:6]
 
@@ -53,21 +51,26 @@ class MOTDataset(Dataset):
         bboxes[:, 3] += bboxes[:, 1]
 
         ann = torch.cat([bboxes, obj_ids, frame_ids], dim=1)
+
+        img = self.loader(self.img_paths[int(frame_ids[0])])
+        if self.transform:
+            img = self.transform(img)
         return img, ann
 
     def __len__(self):
-        return len(self.img_paths)
+        return len(self.anns)
+
 
 TRAINING_DATASET_NAMES = ('ADL-Rundle-6',
                           'ADL-Rundle-8',
-                          'ETH-Bahnhof'
-                          'ETH-Pedcross2'
-                          'ETH-Sunnyday'
-                          'KITTI-13'
-                          'KITTI-17'
-                          'PETS09-S2L1'
-                          'TUD-Campus'
-                          'TUD-Stadtmitte'
+                          'ETH-Bahnhof',
+                          'ETH-Pedcross2',
+                          'ETH-Sunnyday',
+                          'KITTI-13',
+                          'KITTI-17',
+                          'PETS09-S2L1',
+                          'TUD-Campus',
+                          'TUD-Stadtmitte',
                           'Venice-2')
 
 

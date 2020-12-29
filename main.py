@@ -1,9 +1,11 @@
 import os
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from dataloader import build_dataloader, dataset_names
 from model import SORT
+from utils import plot_bbox
 
 
 def main(name):
@@ -14,9 +16,12 @@ def main(name):
     model.eval()
 
     outputs = []
-    for (x, y) in dataloader:
+    for (x, y) in tqdm(dataloader):
         x = x.to(device)
         tracker_outs = model(x)
+
+        # plot result
+        # plot_bbox(x[0].cpu().numpy().transpose(1, 2, 0), tracker_outs)
 
         # reformat bboxes from xyxy to xywh
         bboxes = tracker_outs[:, :4]
@@ -38,5 +43,6 @@ def main(name):
 
 
 if __name__ == '__main__':
-    for name in dataset_names():
+    names = dataset_names()
+    for name in names:
         main(name)
